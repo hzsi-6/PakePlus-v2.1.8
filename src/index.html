@@ -1,11 +1,2008 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        Hello World
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>煤层气动态分析系统 - 地质工程版</title>
+    <style>
+        :root {
+            --primary-color: #0F3460; /* 地质深蓝主色 */
+            --secondary-color: #256D85; /* 矿青辅助色 */
+            --accent-color: #FF9E00; /* 矿金橙高亮色 */
+            --danger-color: #E94560;
+            --success-color: #00B894;
+            --warning-color: #FDCB6E;
+            --light-bg: #F8FAFC;
+            --dark-bg: #16213E;
+            --card-bg: #FFFFFF;
+            --text-primary: #0F3460;
+            --text-secondary: #536179;
+            --border-color: #E2E8F0;
+            --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-card: 0 6px 18px rgba(15, 52, 96, 0.08);
+            --shadow-deep: 0 8px 24px rgba(15, 52, 96, 0.12);
+            --gradient-primary: linear-gradient(135deg, #0F3460 0%, #16213E 100%);
+            --gradient-secondary: linear-gradient(135deg, #256D85 0%, #329D9C 100%);
+            --gradient-accent: linear-gradient(135deg, #FF9E00 0%, #F76B1C 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "思源黑体", sans-serif;
+        }
+        
+        body {
+            background-color: #F1F5F9;
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1920px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            width: 100%;
+        }
+        
+        /* 顶部头部 - 官网级渐变标题栏 */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding: 28px 20px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-deep);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></svg>');
+            background-size: 60px;
+            opacity: 0.6;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            position: relative;
+            letter-spacing: 1px;
+        }
+        .header p {
+            font-size: 15px;
+            opacity: 0.9;
+            position: relative;
+            font-weight: 300;
+        }
+
+        /* 卡片组件 - 核心重构 高级质感 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-deep);
+            transform: translateY(-1px);
+        }
+        .card-header {
+            background: var(--gradient-secondary);
+            padding: 16px 24px;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-header::before {
+            content: "📊";
+            font-size: 18px;
+        }
+        .card-body {
+            padding: 24px;
+        }
+        
+        /* 按钮重构 - 地质风高级按钮 */
+        .btn {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 6px 10px 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .btn-primary {background: var(--gradient-secondary); color: white;}
+        .btn-success {background: var(--gradient-accent); color:white;}
+        .btn-warning {background: var(--warning-color); color:var(--text-primary); font-weight:600;}
+        .btn-danger {background: var(--danger-color); color:white;}
+        .btn:hover {opacity: 0.95; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12);}
+        .btn:active {transform: translateY(0); opacity: 0.9;}
+        .btn:disabled {opacity: 0.6;cursor: not-allowed;transform: none; box-shadow: none;}
+
+        /* 加载动画优化 */
+        .loading {
+            text-align: center;
+            padding: 25px;
+            color: var(--secondary-color);
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        #wellInfo, #dataSummary, #chartsSection {display: none;}
+
+        /* 文本域优化 */
+        #dataText {
+            width: 100%;
+            min-height: 180px;
+            max-height: 320px;
+            resize: vertical;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin: 18px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-y: auto;
+            background: var(--light-bg);
+            color: var(--text-primary);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.03);
+        }
+        #dataText:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(37, 109, 133, 0.15);
+        }
+
+        /* 提示文本样式 */
+        .tips {
+            margin: 12px 0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: var(--light-bg);
+            font-size: 14px;
+            border-left: 4px solid var(--secondary-color);
+            color: var(--text-secondary);
+        }
+        .data-format-example {
+            background: var(--light-bg);
+            padding: 16px;
+            border-radius: 10px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            border: 1px solid var(--border-color);
+            line-height: 1.6;
+        }
+
+        /* 图表标题栏重构 */
+        .chart-title {
+            padding: 14px 20px;
+            background: var(--gradient-secondary);
+            font-weight:600;
+            color: #FFFFFF;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+            font-size: 15px;
+        }
+        .chart-download-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #FFFFFF;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .chart-download-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+
+        /* 高亮文本 */
+        .highlight {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+        .suggestion-item {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 14px;
+        }
+        .suggestion-item:last-child{border-bottom: none;}
+        .suggest-warning {color: var(--warning-color); font-weight: 600;}
+        .suggest-success {color: var(--success-color); font-weight: 600;}
+        .suggest-danger {color: var(--danger-color); font-weight: 700;}
+        
+        /* 指标开关按钮样式 - 高级重构 */
+        .series-switch-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            margin: 0 auto;
+            z-index: 99;
+        }
+        .series-switch-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 9px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 90px;
+            user-select: none;
+            pointer-events: all;
+            position: relative;
+            font-weight: 600;
+        }
+        .series-switch-btn.active {
+            background: var(--secondary-color);
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(37, 109, 133, 0.4);
+        }
+        .series-switch-btn.inactive {
+            background: #E2E8F0;
+            color: #94A3B8;
+            text-decoration: line-through;
+            box-shadow: none;
+        }
+        .series-switch-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .series-switch-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* ✅ 核心优化1：游戏风格弹窗样式 - 移除虚化+删除多余过渡+优化渲染 解决卡顿 */
+        .range-stat-panel {
+            position: fixed;
+            background: var(--card-bg);
+            border: 2px solid var(--secondary-color);
+            border-radius: 16px;
+	padding: 0;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(37, 109, 133, 0.2);
+            z-index: 9999;
+            width: 480px;
+            min-height: 520px;
+            max-height: 80vh;
+            font-size: 14px;
+            pointer-events: auto;
+            overflow: hidden;
+            animation: popup-appear 0.3s ease-out;
+            transition: transform 0.2s ease;
+            cursor: move;
+            transform: translateZ(0);
+            will-change: left, top;
+        }
+        .range-stat-panel.dragging {
+            opacity: 1;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            cursor: grabbing;
+        }
+        @keyframes popup-appear {
+            from {opacity: 0;transform: scale(0.92) translateY(10px);}
+            to {opacity: 1;transform: scale(1) translateY(0);}
+        }
+        
+        .range-stat-header {
+            background: var(--gradient-secondary);
+            color: white;
+            padding: 18px 24px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            cursor: move;
+            user-select: none;
+        }
+        .range-stat-title {
+            font-weight: bold;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .range-stat-title::before {content: '📊';font-size: 20px;}
+        .range-stat-close {
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+	width: 30px;
+	height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10001;
+        }
+        .range-stat-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .range-stat-body {
+            padding: 22px;
+            max-height: calc(80vh - 130px);
+            overflow-y: auto;
+            cursor: default;
+        }
+        .range-stat-section {
+            margin-bottom: 22px;
+            padding: 18px;
+            background: var(--light-bg);
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        .range-stat-section-title {
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .range-stat-section-title::before {content: '▶';font-size: 12px;color: var(--secondary-color);}
+        .range-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 9px 0;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+        }
+        .range-stat-item:last-child {border-bottom: none;}
+        .range-stat-label {color: var(--text-secondary);flex: 1;font-size: 13px;}
+        .range-stat-value {font-weight: 700;color: var(--text-primary);font-size: 14px;text-align: right;min-width: 100px;}
+        .range-stat-unit {color: #94A3B8;font-size: 12px;margin-left: 4px;font-weight: normal;}
+        .range-stat-highlight {color: var(--secondary-color);font-weight: 700;}
+        .range-stat-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(37, 109, 133, 0.3), transparent);
+            margin: 18px 0;
+        }
+        .range-stat-footer {
+            margin-top: 18px;
+            padding: 12px;
+            background: rgba(37, 109, 133, 0.05);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+            border-top: 1px solid rgba(37, 109, 133, 0.1);
+        }
+        
+        /* 高亮区域样式优化 */
+        .echarts-highlight-area {
+            background-color: rgba(255, 158, 0, 0.15);
+            border: 1px solid var(--accent-color);
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 10;
+            position: absolute;
+            box-shadow: 0 2px 8px rgba(255, 158, 0, 0.3);
+            transition: all 0.1s ease;
+            top: 10% !important;
+	height: 80% !important;
+	bottom: 10% !important;
+        }
+        .echarts-highlight-area::after {
+            content: '已选中分析区间';
+            position: absolute;
+            top: -22px;
+            left: 0;
+            background: var(--accent-color);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        
+        /* 范围选择工具栏 */
+        .range-toolbar {display: flex;gap: 12px;align-items: center;margin-top: 6px;}
+        .range-info {
+            font-size: 12px;
+            color: #FFFFFF;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .range-clear-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #FFFFFF;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        .range-clear-btn:hover {background: rgba(255,255,255,0.3);}
+        
+        /* ✅ 核心优化2：弹窗遮罩层 - 移除虚化效果，解决卡顿 */
+        .popup-overlay {
+            position: fixed;
+            top: 0;left:0;right:0;bottom:0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 9998;
+            display: none;
+            pointer-events: auto;
+        }
+        
+        /* 指标系列颜色标签 */
+        .series-color-indicator {
+            display: inline-block;
+            width: 12px;height:12px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        
+        /* 弹窗中的系列选择器 */
+        .series-selector {display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+        .series-selector-btn {
+            padding:6px 12px;border:1px solid var(--border-color);border-radius:6px;
+            background:white;cursor:pointer;font-size:12px;transition:all 0.2s;
+            display:flex;align-items:center;font-weight:600;
+        }
+        .series-selector-btn.active {
+            background: var(--secondary-color);color:white;border-color:var(--secondary-color);
+        }
+        
+        /* 多指标对比样式 */
+        .multi-series-stats {
+            display: grid;grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+            gap:12px;margin-top:12px;
+        }
+        .series-stat-block {
+            background: rgba(255,255,255,0.8);padding:12px;border-radius:8px;
+            border-left:3px solid;box-shadow:0 2px 6px rgba(0,0,0,0.04);
+        }
+        .series-stat-title {font-weight:bold;font-size:12px;margin-bottom:6px;display:flex;align-items:center;}
+
+        /* 加载状态提示 */
+        .load-status {
+            position: fixed;top:20px;right:20px;
+            background: white;padding:12px 18px;border-radius:8px;
+            box-shadow:var(--shadow-deep);z-index:10000;display:none;
+            font-weight:600;color:var(--text-primary);
+            border-left:4px solid var(--secondary-color);
+        }
+        
+        /* 拖拽标记点样式 */
+        .range-marker {
+            position: absolute;width:14px;height:14px;border-radius:50%;
+            border:2px solid white;box-shadow:0 0 8px rgba(0,0,0,0.5);
+            z-index:11;pointer-events:none;bottom:8px !important;
+        }
+        .range-marker.start {background: var(--success-color);}
+        .range-marker.end {background: var(--danger-color);}
+        
+        /* 相关性分析下拉选择框样式 */
+        .corr-select {
+            padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;
+            font-size:13px;margin:0 6px;background:#fff;color:var(--text-primary);
+            cursor:pointer;font-weight:500;
+        }
+        .corr-select:focus {
+            outline:none;border-color:var(--secondary-color);
+            box-shadow:0 0 0 3px rgba(37,109,133,0.15);
+        }
+
+        /* 井信息面板 */
+        #wellInfo {
+            display:flex;gap:24px;flex-wrap:wrap;padding:20px;background:var(--light-bg);
+            border-radius:14px;margin:10px 0;border:1px solid var(--border-color);
+            box-shadow:var(--shadow-light);
+        }
+        #wellInfo > div {
+            font-size:15px;font-weight:500;color:var(--text-primary);
+        }
+        #wellInfo > div strong {color:var(--secondary-color);}
+
+        /* 数据汇总面板 - 核心重构 地质卡片式 */
+        #dataSummary {
+            display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+            gap:16px;padding:20px;background:var(--card-bg);border-radius:14px;
+            box-shadow:var(--shadow-card);margin:10px 0;border:1px solid var(--border-color);
+        }
+        .summary-item {
+            text-align:center;padding:16px;border-radius:10px;
+            background:var(--light-bg);border:1px solid var(--border-color);
+        }
+        .summary-label {
+            font-size:13px;color:var(--text-secondary);margin-bottom:4px;
+        }
+        .summary-value {
+            font-size:20px;font-weight:700;color:var(--text-primary);
+        }
+
+        /* 图表容器布局优化 */
+        .charts-container {
+            display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0;
+            width: 100%;
+        }
+        .chart-box {
+            height:400px;border-radius:14px;overflow:hidden;
+            background:var(--card-bg);box-shadow:var(--shadow-card);
+            border:1px solid var(--border-color);
+        }
+        .chart-content {height:calc(100% - 46px);width:100%;}
+        .chart-box:nth-child(5) {height:520px;grid-column:1/3;position:relative;}
+        .chart-box:nth-child(6) {height:420px;grid-column:1/3;}
+
+        /* 响应式适配 - 全尺寸兼容 */
+        @media (max-width: 1400px) {
+            .charts-container {grid-template-columns:1fr;gap:16px;}
+            .chart-box:nth-child(5),.chart-box:nth-child(6) {grid-column:1;}
+            .series-switch-group {flex-wrap:wrap;}
+        }
+        @media (max-width: 768px) {
+            .container {padding:12px;}
+            .header h1 {font-size:24px;}
+            .btn {padding:10px 18px;font-size:13px;}
+            .range-stat-panel {width:90%;}
+            #dataSummary {grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<body>
+    <div class="load-status" id="loadStatus"></div>
+    <div class="container">
+        <div class="popup-overlay" id="popupOverlay"></div>
+        
+        <div class="header">
+            <h1>煤层气动态分析系统</h1>
+            <p>多指标合并趋势图 | 专业地质工程分析 | 适配：井号	生产日期	井底压力	套压	日产气量	日产水</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">数据导入</div>
+            <div class="card-body">
+                <div class="import-area">
+                    <div class="import-buttons">
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📁 选择TXT/CSV/Excel导入</button>
+                        <button class="btn btn-success" onclick="parseData()">🔍 解析数据 & 生成分析</button>
+                        <button class="btn btn-warning" onclick="loadExampleData()">📋 加载地质示例数据</button>
+                        <button class="btn btn-danger" onclick="document.getElementById('dataText').value = ''">🗑️ 清空数据</button>
+                    </div>
+                    <input type="file" id="fileInput" accept=".txt,.csv,.xlsx,.xls" style="display: none;" onchange="readFile(event)">
+                    <textarea id="dataText" placeholder="请粘贴煤层气地质数据（格式：井号	生产日期	井底压力（MPa）	套压（MPa）	日产气量(m³)	日产水(m³））..."></textarea>
+                    <div class="tips" id="tips">系统已就绪，请导入煤层气井数据</div>
+                    
+                    <div class="data-format-example">
+                        <strong>✅ 标准地质数据格式示例：</strong>
+井号	生产日期	井底压力（MPa）	套压（MPa）	日产气量(m³)	日产水(m³）
+X1	2025-02-13	8.2	0.1	0	0
+X1	2025-03-07	7.5	0.2	50	8
+X1	2025-03-28	6.2	1.8	500	12
+X1	2025-04-19	5.8	2.5	1500	10
+X1	2025-05-10	5.5	3.2	3000	8
+X1	2025-06-01	5.2	3.5	4500	6
+X1	2025-06-22	5.0	3.6	5000	5
+X1	2025-07-14	4.8	3.8	5500	4
+X1	2025-08-04	4.7	3.9	6000	3
+X1	2025-08-26	4.6	4.0	6500	3
+X1	2025-09-16	4.5	4.1	7000	2
+X1	2025-10-08	4.4	4.2	7500	2
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" style="display:none;">
+            <div>正在解析地质数据并生成工程分析，请稍候...</div>
+        </div>
+
+        <div id="wellInfo" class="well-info">
+            <div><strong>井号：</strong><span id="wellNumber">--</span></div>
+            <div><strong>井型：</strong><span id="wellType" class="well-type">--</span></div>
+            <div><strong>达产标准：</strong><span id="productionStandard">--</span></div>
+            <div><strong>达产率：</strong><span id="reachRate">--</span></div>
+        </div>
+
+        <div id="dataSummary" class="data-summary">
+            <div class="summary-item">
+                <div class="summary-label">分析周期</div>
+                <div class="summary-value" id="periodValue">--</div>
+                <div class="summary-label" id="periodLabel">天数</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">平均日产气</div>
+                <div class="summary-value" id="avgGasValue">--</div>
+                <div class="summary-label">m³/天</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">平均日产水</div>
+                <div class="summary-value" id="avgWaterValue">--</div>
+                <div class="summary-label">m³/天</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">井底压力衰减</div>
+                <div class="summary-value" id="pressureDropValue">--</div>
+                <div class="summary-label">MPa</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">日均排采强度</div>
+                <div class="summary-value" id="pressureDropRate">--</div>
+                <div class="summary-label">MPa/天</div>
+            </div>
+        </div>
+
+        <div id="chartsSection">
+            <div class="charts-container">
+                <div class="chart-box">
+                    <div class="chart-title">井底压力动态趋势图（MPa）
+                        <button class="chart-download-btn" onclick="downloadSingleChart('pressureTrendChart', '井底压力动态趋势图')">📥 下载</button>
+                    </div>
+                    <div class="chart-content" id="pressureTrendChart"></div>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">套压动态趋势图（MPa）
+                        <button class="chart-download-btn" onclick="downloadSingleChart('casingPressureTrendChart', '套压动态趋势图')">📥 下载</button>
+                    </div>
+                    <div class="chart-content" id="casingPressureTrendChart"></div>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">日产气量动态趋势图（m³/d）
+                        <button class="chart-download-btn" onclick="downloadSingleChart('gasTrendChart', '日产气量动态趋势图')">📥 下载</button>
+                    </div>
+                    <div class="chart-content" id="gasTrendChart"></div>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">日产水量动态趋势图（m³/d）
+                        <button class="chart-download-btn" onclick="downloadSingleChart('waterTrendChart', '日产水量动态趋势图')">📥 下载</button>
+                    </div>
+                    <div class="chart-content" id="waterTrendChart"></div>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">
+                        多指标总趋势图（井底压力/套压/日产气量/日产水量）
+                        <div class="series-switch-group">
+                            <button id="btn_井底压力" class="series-switch-btn active" onclick="toggleSeries('井底压力')">
+                                <span class="series-color-indicator" style="background:#3498db"></span>井底压力
+                            </button>
+                            <button id="btn_套压" class="series-switch-btn active" onclick="toggleSeries('套压')">
+                                <span class="series-color-indicator" style="background:#e74c3c"></span>套压
+                            </button>
+                            <button id="btn_日产气量" class="series-switch-btn active" onclick="toggleSeries('日产气量')">
+                                <span class="series-color-indicator" style="background:#27ae60"></span>日产气量
+                            </button>
+                            <button id="btn_日产水量" class="series-switch-btn active" onclick="toggleSeries('日产水量')">
+                                <span class="series-color-indicator" style="background:#f39c12"></span>日产水量
+                            </button>
+                        </div>
+                        <div class="range-toolbar">
+                            <div class="range-info" id="rangeInfo">鼠标拖拽选择时间范围（支持多指标对比）</div>
+                            <button class="range-clear-btn" onclick="clearRangeSelection()" id="rangeClearBtn" style="display:none;">清除选择</button>
+                        </div>
+                        <button class="chart-download-btn" onclick="downloadSingleChart('totalTrendChart', '多指标总趋势图')">📥 下载</button>
+                    </div>
+                    <div class="chart-content" id="totalTrendChart" style="position:relative;"></div>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">
+                        指标相关性分析（相关系数：<span id="corrValue">--</span>）
+                        <select class="corr-select" id="xAxisSelect" onchange="refreshCorrelationChart()">
+                            <option value="井底压力（MPa）">X轴：井底压力 (MPa)</option>
+                            <option value="套压（MPa）">X轴：套压 (MPa)</option>
+                            <option value="日产气量(m³)">X轴：日产气量 (m³/d)</option>
+                            <option value="日产水(m³）">X轴：日产水量 (m³/d)</option>
+                        </select>
+                        <select class="corr-select" id="yAxisSelect" onchange="refreshCorrelationChart()">
+                            <option value="井底压力（MPa）">Y轴：井底压力 (MPa)</option>
+                            <option value="套压（MPa）">Y轴：套压 (MPa)</option>
+                            <option value="日产气量(m³)" selected>Y轴：日产气量 (m³/d)</option>
+                            <option value="日产水(m³）">Y轴：日产水量 (m³/d)</option>
+                        </select>
+                        <button class="chart-download-btn" onclick="downloadSingleChart('correlationChart', '指标相关性分析图')">📥 下载</button>
+                    </div>
+                    <div class="chart-content" id="correlationChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-area" style="margin:24px 0;">
+            <div class="export-buttons">
+                <button class="btn btn-success" onclick="exportAllCharts()">📊 一键导出所有图表</button>
+                <button class="btn btn-primary" onclick="exportData()">📋 导出分析数据(Excel)</button>
+                <button class="btn btn-warning" onclick="exportReportAsImages()">📄 导出完整地质分析报告(JPG)</button>
+            </div>
+            <div class="card suggestion-area" style="margin-top:24px;">
+                <div class="card-header">智能地质工程建议</div>
+                <div class="card-body">
+                    <div class="suggestion-content" id="suggestion" style="line-height:1.8;font-size:14px;">
+                        <div class="suggestion-item">请先导入煤层气井数据，系统将基于地质数据趋势自动生成专业工程建议...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+        // 全局数据
+        let globalData = [];
+        let chartInstances = {};
+        let resizeHandler = null;
+        
+        // 新增：时间范围选择相关变量
+        let isSelectingRange = false;
+        let rangeStartIndex = -1;
+        let rangeEndIndex = -1;
+        let currentPopup = null;
+        
+        // 新增：弹窗拖动相关变量
+        let isDraggingPopup = false;
+        let popupDragStartX = 0;
+        let popupDragStartY = 0;
+        let popupDragOffsetX = 0;
+        let popupDragOffsetY = 0;
+        
+        // ✅ 核心修改：高亮区域变量 - 取消永久缓存
+        let highlightArea = null;
+        let rangeMarkerStart = null;
+        let rangeMarkerEnd = null;
+        
+        // 系列配置 - 包含所有可能显示的系列
+        const seriesConfig = {
+            '井底压力': { color: '#3498db', yAxisIndex: 0, visible: true, unit: 'MPa' },
+            '套压': { color: '#e74c3c', yAxisIndex: 0, visible: true, unit: 'MPa' },
+            '日产气量': { color: '#27ae60', yAxisIndex: 1, visible: true, unit: 'm³/d' },
+            '日产水量': { color: '#f39c12', yAxisIndex: 1, visible: true, unit: 'm³/d' }
+        };
+
+        // 检查依赖库是否加载
+        function checkDependencies() {
+            const statusEl = document.getElementById('loadStatus');
+            let loaded = 0;
+            const total = 5;
+            
+            const updateStatus = (msg) => {
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.textContent = msg;
+                    setTimeout(() => {
+                        statusEl.style.display = 'none';
+                    }, 3000);
+                }
+            };
+            
+            // 检查echarts
+            if (typeof echarts !== 'undefined') {
+                loaded++;
+                console.log('✅ ECharts 已加载');
+            } else {
+                console.error('❌ ECharts 未加载');
+                updateStatus('ECharts加载失败，请刷新页面');
+                return false;
+            }
+            
+            // 检查XLSX
+            if (typeof XLSX !== 'undefined') {
+                loaded++;
+                console.log('✅ XLSX 已加载');
+            } else {
+                console.error('❌ XLSX 未加载');
+                updateStatus('XLSX加载失败，部分功能不可用');
+            }
+            
+            // 检查html2canvas
+            if (typeof html2canvas !== 'undefined') {
+                loaded++;
+                console.log('✅ html2canvas 已加载');
+            } else {
+                console.error('❌ html2canvas 未加载');
+                updateStatus('html2canvas加载失败，导出功能不可用');
+            }
+            
+            return true;
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 页面加载完成，开始初始化...');
+            
+            // 检查依赖库
+            if (!checkDependencies()) {
+                showTips('部分依赖库加载失败，请刷新页面或检查网络', 'error');
+                return;
+            }
+            
+            showTips('系统初始化完成，可以导入煤层气地质数据', 'success');
+            
+            // 自动加载示例数据，便于测试
+            setTimeout(loadExampleData, 1000);
+            
+            // ========== ✅ 核心新增：点击页面任意空白处 清除高亮+弹窗 ==========
+            document.addEventListener('click', function(event) {
+                const popup = document.getElementById('rangeStatPopup');
+                const overlay = document.getElementById('popupOverlay');
+                const closeBtn = document.querySelector('.range-stat-close');
+                const chartDom = document.getElementById('totalTrendChart');
+                const selectorBtns = document.querySelectorAll('.series-selector-btn');
+                const switchBtns = document.querySelectorAll('.series-switch-btn');
+                const clearBtn = document.getElementById('rangeClearBtn');
+                const popupHeader = popup?.querySelector('.range-stat-header');
+                
+                // 点击这些区域 不清除高亮和弹窗
+                const noClearTargets = [popup, chartDom, closeBtn, clearBtn, popupHeader, ...selectorBtns, ...switchBtns];
+                const isClickNoClear = noClearTargets.some(el => el && el.contains(event.target));
+                
+                // 点击空白处，执行清除逻辑
+                if (!isClickNoClear) {
+                    clearRangeSelection();
+                }
+                
+                // 原有弹窗关闭逻辑
+                if (popup && overlay.style.display === 'block' && !isClickNoClear) {
+                    closeRangeStatPopup();
+                }
+            });
+            
+            // 添加ESC键关闭弹窗+清除高亮
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    clearRangeSelection();
+                    closeRangeStatPopup();
+                }
+            });
+        });
+
+        function showTips(text, type = 'info') {
+            const tipsDom = document.getElementById('tips');
+            if (tipsDom) {
+                tipsDom.innerText = text;
+                tipsDom.style.color = type === 'error' ? '#E94560' : type === 'success' ? '#00B894' : '#536179';
+                tipsDom.style.backgroundColor = type === 'error' ? '#FEF2F2' : type === 'success' ? '#ECFDF5' : '#F8FAFC';
+                tipsDom.style.borderLeftColor = type === 'error' ? '#E94560' : type === 'success' ? '#00B894' : '#256D85';
+            }
+        }
+
+        function readFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileName = file.name;
+            const fileExt = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            const reader = new FileReader();
+
+            showTips(`正在读取地质数据文件: ${fileName}`, 'info');
+
+            if (fileExt === '.txt' || fileExt === '.csv') {
+                reader.onload = function(e) {
+                    try {
+                        const content = e.target.result;
+                        document.getElementById('dataText').value = content;
+                        showTips(`文件读取成功: ${fileName}，请点击解析数据`, 'success');
+                    } catch (err) {
+                        showTips(`文件读取失败: ${err.message}`, 'error');
+                    }
+                };
+                reader.onerror = function() {
+                    showTips('文件读取失败，请检查地质数据格式', 'error');
+                };
+                reader.readAsText(file, 'UTF-8');
+            } else if (fileExt === '.xlsx' || fileExt === '.xls') {
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const csvContent = XLSX.utils.sheet_to_csv(firstSheet, { FS: '\t' });
+                        document.getElementById('dataText').value = csvContent;
+                        showTips(`Excel地质文件读取成功: ${fileName}，请点击解析数据`, 'success');
+                    } catch (err) {
+                        showTips(`Excel文件解析失败: ${err.message}`, 'error');
+                    }
+                };
+                reader.onerror = function() {
+                    showTips('Excel文件读取失败', 'error');
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                showTips(`不支持的文件类型: ${fileExt}`, 'error');
+                return;
+            }
+            event.target.value = '';
+        }
+
+        function loadExampleData() {
+            try {
+                const exampleData = `井号	生产日期	井底压力（MPa）	套压（MPa）	日产气量(m³)	日产水(m³）
+X1	2025-02-13	8.2	0.1	0	0
+X1	2025-03-07	7.5	0.2	50	8
+X1	2025-03-28	6.2	1.8	500	12
+X1	2025-04-19	5.8	2.5	1500	10
+X1	2025-05-10	5.5	3.2	3000	8
+X1	2025-06-01	5.2	3.5	4500	6
+X1	2025-06-22	5.0	3.6	5000	5
+X1	2025-07-14	4.8	3.8	5500	4
+X1	2025-08-04	4.7	3.9	6000	3
+X1	2025-08-26	4.6	4.0	6500	3
+X1	2025-09-16	4.5	4.1	7000	2
+X1	2025-10-08	4.4	4.2	7500	2`;
+                document.getElementById('dataText').value = exampleData;
+                showTips('煤层气示例地质数据加载成功，请点击【解析数据】', 'success');
+            } catch (err) {
+                showTips(`加载示例数据失败: ${err.message}`, 'error');
+            }
+        }
+
+        function getLinearRegression(xData, yData) {
+            const n = xData.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+            for(let i=0; i<n; i++){
+                sumX += xData[i];
+                sumY += yData[i];
+                sumXY += xData[i] * yData[i];
+                sumX2 += xData[i] * xData[i];
+                sumY2 += yData[i] * yData[i];
+            }
+            const corr = (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+            const k = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const b = (sumY - k * sumX) / n;
+            return { corr: corr.toFixed(4), k: k.toFixed(2), b: b.toFixed(2) };
+        }
+
+        function generateEngineeringSuggestion(){
+            if(globalData.length === 0) return "暂无地质数据，无法生成工程建议";
+            const bottomPressure = globalData.map(item => parseFloat(item['井底压力（MPa）']) || 0);
+            const casingPressure = globalData.map(item => parseFloat(item['套压（MPa）']) || 0);
+            const gasProd = globalData.map(item => parseFloat(item['日产气量(m³)']) || 0);
+            const waterProd = globalData.map(item => parseFloat(item['日产水(m³）']) || 0);
+            const pressureFirst = bottomPressure[0];
+            const pressureLast = bottomPressure[bottomPressure.length-1];
+            const pressureDrop = (pressureFirst - pressureLast).toFixed(2);
+            const avgGas = (gasProd.reduce((a,b)=>a+b)/gasProd.length).toFixed(0);
+            const avgWater = (waterProd.reduce((a,b)=>a+b)/waterProd.length).toFixed(1);
+            const gasMax = Math.max(...gasProd);
+            const dayCount = globalData.length;
+            const dailyPressureDrop = (pressureDrop / dayCount).toFixed(4);
+            const gasWaterRatio = (avgGas / (avgWater*1.01)).toFixed(0);
+            const corrData = getLinearRegression(bottomPressure, gasProd);
+            const corr = parseFloat(corrData.corr);
+
+            let suggestions = [];
+            suggestions.push(`<div class="suggestion-item">📊 基础地质数据分析：本次分析周期${dayCount}天，井底压力累计衰减${pressureDrop}MPa，日均排采强度${dailyPressureDrop}MPa/天</div>`);
+            suggestions.push(`<div class="suggestion-item">📊 产气能力：平均日产气量${avgGas}m³，最高日产气量${gasMax}m³，产水气比${gasWaterRatio} m³/m³</div>`);
+
+            if(dailyPressureDrop < 0.01){
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-success">✔️ 排采强度合理</span>：日均降压小于0.01MPa，属于煤层气井合理排采节奏，煤层渗透率稳定，无煤粉产出风险</div>`);
+            }else if(dailyPressureDrop >=0.01 && dailyPressureDrop <0.02){
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-warning">⚠️ 排采强度偏快</span>：日均降压${dailyPressureDrop}MPa，建议适当放缓排采速度，防止煤层应力突变导致渗透率下降</div>`);
+            }else{
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-danger">❗ 排采强度过快</span>：日均降压超过0.02MPa，存在煤层压裂裂缝闭合、产气通道堵塞风险，立即降低排采速率！</div>`);
+            }
+
+            if(gasMax >= 5000){
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-success">✔️ 达产达标</span>：最高日产气量已达${gasMax}m³，超过煤层气井5000m³/d达产标准，产气效果优秀</div>`);
+            }else if(gasMax >=3000 && gasMax <5000){
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-warning">⚠️ 产气潜力待释放</span>：最高日产气量${gasMax}m³，未达达产标准，建议稳定排采，继续降压解吸煤层气</div>`);
+            }else{
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-warning">⚠️ 产气初期阶段</span>：当前处于排水降压阶段，日产气量偏低，建议保持现有排采节奏，待压力降至临界解吸压力后产气能力将提升</div>`);
+            }
+
+            if(corr < -0.9){
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-success">✔️ 压力-产气相关性极佳</span>：相关系数${corr.toFixed(4)}，井底压力下降与日产气量上升呈强负相关，煤层解吸规律典型，产气趋势向好</div>`);
+            }else if(corr >=-0.9 && corr < -0.7){
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-warning">⚠️ 压力-产气相关性良好</span>：相关系数${corr.toFixed(4)}，产气随降压稳步提升，建议持续稳定排采，巩固产气通道</div>`);
+            }else{
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-danger">❗ 压力-产气相关性较差</span>：相关系数${corr.toFixed(4)}，产气波动大，可能存在煤层非均质性或水体干扰，建议开展井组连通性分析</div>`);
+            }
+
+            if(avgWater < 5){
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-success">✔️ 产水量合理</span>：平均日产水${avgWater}m³，排水顺畅，无井筒积液问题，套压稳定有利于产气</div>`);
+            }else{
+                suggestions.push(`<div class="suggestion-item"><span class="suggest-warning">⚠️ 产水量偏高</span>：平均日产水${avgWater}m³，建议检查井筒举升能力，防止积液导致套压升高抑制产气</div>`);
+            }
+
+            suggestions.push(`<div class="suggestion-item">📌 综合地质工程建议：保持现有排采制度，定期监测井底压力与产气变化趋势，当日产气量连续3天下降时，及时调整排采参数；建议每7天开展一次压力恢复测试，评估煤层渗透率变化。</div>`);
+
+            return suggestions.join('');
+        }
+
+        function calculateRangeStatistics(startIdx, endIdx, selectedSeries = []) {
+            if (startIdx === -1 || endIdx === -1 || startIdx === endIdx) {
+                return null;
+            }
+            
+            const actualStartIdx = Math.min(startIdx, endIdx);
+            const actualEndIdx = Math.max(startIdx, endIdx);
+            
+            const rangeData = globalData.slice(actualStartIdx, actualEndIdx + 1);
+            
+            // 获取所有系列的数据
+            const dataBySeries = {};
+            for (const seriesName in seriesConfig) {
+                if (selectedSeries.length === 0 || selectedSeries.includes(seriesName)) {
+                    let dataKey = '';
+                    switch(seriesName) {
+                        case '井底压力': dataKey = '井底压力（MPa）'; break;
+                        case '套压': dataKey = '套压（MPa）'; break;
+                        case '日产气量': dataKey = '日产气量(m³)'; break;
+                        case '日产水量': dataKey = '日产水(m³）'; break;
+                    }
+                    
+                    if (dataKey) {
+                        const data = rangeData.map(item => parseFloat(item[dataKey]) || 0);
+                        let avgVal = 0, maxVal =0, minVal=0;
+                        // 日产气量/日产水量 保留规则
+                        if(seriesName == "日产气量"){
+                            avgVal = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(0);
+                            maxVal = Math.max(...data).toFixed(0);
+                            minVal = Math.min(...data).toFixed(0);
+                        }else if(seriesName == "日产水量"){
+                            avgVal = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(1);
+                            maxVal = Math.max(...data).toFixed(1);
+                            minVal = Math.min(...data).toFixed(1);
+                        }else{
+                            avgVal = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(2);
+                            maxVal = Math.max(...data).toFixed(2);
+                            minVal = Math.min(...data).toFixed(2);
+                        }
+                        dataBySeries[seriesName] = {
+                            data: data,
+                            unit: seriesConfig[seriesName].unit,
+                            color: seriesConfig[seriesName].color,
+                            avg: avgVal,
+                            max: maxVal,
+                            min: minVal
+                        };
+                    }
+                }
+            }
+            
+            const startDate = rangeData[0]['生产日期'];
+            const endDate = rangeData[rangeData.length - 1]['生产日期'];
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            
+            // 计算井底压力衰减（如果有井底压力数据）
+            let pressureDrop = null;
+            let dailyPressureDrop = null;
+            if (dataBySeries['井底压力']) {
+                const pressureData = dataBySeries['井底压力'].data;
+                pressureDrop = (pressureData[0] - pressureData[pressureData.length - 1]).toFixed(2);
+                dailyPressureDrop = (pressureDrop / days).toFixed(4);
+            }
+            
+            return {
+                startDate,
+                endDate,
+                days,
+                dataBySeries,
+                pressureDrop,
+                dailyPressureDrop,
+                selectedSeries: selectedSeries.length > 0 ? selectedSeries : Object.keys(dataBySeries)
+            };
+        }
+
+        function setRangeHighlight(startIdx, endIdx) {
+            if (startIdx === -1 || endIdx === -1) return;
+            
+            const chart = chartInstances.totalTrendChart;
+            if (!chart) return;
+            
+            const actualStartIdx = Math.min(startIdx, endIdx);
+            const actualEndIdx = Math.max(startIdx, endIdx);
+            
+            // 先移除旧的高亮，防止重复创建
+            removeRangeHighlight();
+            
+            // 获取【总图表容器】的真实坐标和尺寸 - 核心修复
+            const chartDom = document.getElementById('totalTrendChart');
+            const rect = chartDom.getBoundingClientRect();
+            
+            // 计算高亮区域的位置和大小 - 基于图表内部坐标，精准贴合
+            const startPoint = chart.convertToPixel({ seriesIndex: 0 }, [actualStartIdx, 0]);
+            const endPoint = chart.convertToPixel({ seriesIndex: 0 }, [actualEndIdx, 0]);
+            
+            if (!startPoint || !endPoint) return;
+            
+            // 创建高亮区域层 - 橙色半透明+醒目边框，添加到【图表容器内】
+            highlightArea = document.createElement('div');
+            highlightArea.className = 'echarts-highlight-area';
+            
+            const left = Math.min(startPoint[0], endPoint[0]);
+            const width = Math.abs(endPoint[0] - startPoint[0]);
+            
+            // 精准定位：相对图表容器，不是body
+            highlightArea.style.left = left + 'px';
+            highlightArea.style.width = width + 'px';
+            
+            // 把高亮区域添加到【总图表容器】里，确保永远在图表上
+            chartDom.appendChild(highlightArea);
+            
+            // 创建开始和结束标记点 - 绿色开始+红色结束，精准显示在图表X轴上
+            rangeMarkerStart = document.createElement('div');
+            rangeMarkerStart.className = 'range-marker start';
+            rangeMarkerStart.style.left = (startPoint[0] - 7) + 'px';
+            chartDom.appendChild(rangeMarkerStart);
+            
+            rangeMarkerEnd = document.createElement('div');
+            rangeMarkerEnd.className = 'range-marker end';
+            rangeMarkerEnd.style.left = (endPoint[0] - 7) + 'px';
+            chartDom.appendChild(rangeMarkerEnd);
+            
+            // 更新范围信息文本
+            document.getElementById('rangeInfo').textContent = 
+                `已选择: ${globalData[actualStartIdx]['生产日期']} 至 ${globalData[actualEndIdx]['生产日期']}`;
+            document.getElementById('rangeClearBtn').style.display = 'inline-block';
+        }
+
+        function removeRangeHighlight() {
+            const chartDom = document.getElementById('totalTrendChart');
+            if (highlightArea && chartDom.contains(highlightArea)) {
+                highlightArea.remove();
+                highlightArea = null;
+            }
+            if (rangeMarkerStart && chartDom.contains(rangeMarkerStart)) {
+                rangeMarkerStart.remove();
+                rangeMarkerStart = null;
+            }
+            if (rangeMarkerEnd && chartDom.contains(rangeMarkerEnd)) {
+                rangeMarkerEnd.remove();
+                rangeMarkerEnd = null;
+            }
+        }
+
+        function showRangeStatisticsPopup(stats) {
+            // 先关闭已有的弹窗
+            closeRangeStatPopup();
+            
+            // 获取当前可见的系列（精准匹配，勾选几个显示几个）
+            const visibleSeries = Object.keys(seriesConfig).filter(name => seriesConfig[name].visible);
+            
+            // 创建弹窗容器
+            const popup = document.createElement('div');
+            popup.id = 'rangeStatPopup';
+            popup.className = 'range-stat-panel';
+            
+            // 设置弹窗位置（默认显示在屏幕中央）
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const popupWidth = 500;
+            const popupHeight = 600;
+            
+            popup.style.left = `${(viewportWidth - popupWidth) / 2}px`;
+            popup.style.top = `${Math.max(20, (viewportHeight - popupHeight) / 3)}px`;
+            
+            // 生成系列选择器HTML
+            let seriesSelectorHTML = '';
+            for (const seriesName in seriesConfig) {
+                const config = seriesConfig[seriesName];
+                seriesSelectorHTML += `
+                    <button class="series-selector-btn ${config.visible ? 'active' : ''}" 
+                            onclick="togglePopupSeries('${seriesName}')"
+                            style="border-color: ${config.color}; ${config.visible ? `background:${config.color};color:white` : ''}">
+                        <span class="series-color-indicator" style="background:${config.color}"></span>${seriesName}
+                    </button>
+                `;
+            }
+            
+            // 核心修改：生成统计块 - 只显示【平均日产气量、最高日产气量、平均日产水量、最高日产水量】，删除变化率
+            let seriesStatsHTML = '';
+            const visibleCount = visibleSeries.length;
+            
+            if (visibleCount === 1) {
+                // 单指标显示详细统计
+                const seriesName = visibleSeries[0];
+                const seriesData = stats.dataBySeries[seriesName];
+                if (seriesData) {
+                    seriesStatsHTML = `
+                        <div class="range-stat-section">
+                            <div class="range-stat-section-title">
+                                <span class="series-color-indicator" style="background:${seriesData.color}"></span>${seriesName}详细统计
+                            </div>
+                            <div class="range-stat-item">
+                                <span class="range-stat-label">平均值：</span>
+                                <span class="range-stat-value range-stat-highlight">${seriesData.avg}<span class="range-stat-unit">${seriesData.unit}</span></span>
+                            </div>
+                            <div class="range-stat-item">
+                                <span class="range-stat-label">最大值：</span>
+                                <span class="range-stat-value">${seriesData.max}<span class="range-stat-unit">${seriesData.unit}</span></span>
+                            </div>
+                            <div class="range-stat-item">
+                                <span class="range-stat-label">最小值：</span>
+                                <span class="range-stat-value">${seriesData.min}<span class="range-stat-unit">${seriesData.unit}</span></span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                // 多指标对比显示 - 完美适配2/3/4个指标，只展示平均+最高，无冗余
+                seriesStatsHTML = `
+                    <div class="range-stat-section">
+                        <div class="range-stat-section-title">📈 多指标对比分析 (共${visibleCount}项)</div>
+                        <div class="multi-series-stats">
+                `;
+                
+                for (const seriesName of visibleSeries) {
+                    const seriesData = stats.dataBySeries[seriesName];
+                    if (seriesData) {
+                        // 针对气量/水量单独优化显示文案
+                        let showText = "";
+                        if(seriesName == "日产气量"){
+                            showText = `平均产气：<strong>${seriesData.avg}${seriesData.unit}</strong><br>最高产气：${seriesData.max}${seriesData.unit}`;
+                        }else if(seriesName == "日产水量"){
+                            showText = `平均产水：<strong>${seriesData.avg}${seriesData.unit}</strong><br>最高产水：${seriesData.max}${seriesData.unit}`;
+                        }else{
+                            showText = `平均值：<strong>${seriesData.avg}${seriesData.unit}</strong><br>最大值：${seriesData.max}${seriesData.unit}`;
+                        }
+                        seriesStatsHTML += `
+                            <div class="series-stat-block" style="border-left-color:${seriesData.color}">
+                                <div class="series-stat-title">
+                                    <span class="series-color-indicator" style="background:${seriesData.color}"></span>${seriesName}
+                                </div>
+                                <div style="font-size:11px;color:#666;">
+                                    ${showText}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                seriesStatsHTML += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 填充弹窗内容
+            popup.innerHTML = `
+                <div class="range-stat-header">
+                    <div class="range-stat-title">时间段地质统计分析</div>
+                    <button class="range-stat-close" onclick="closeRangeStatPopup()">×</button>
+                </div>
+                <div class="range-stat-body">
+                    <div class="range-stat-section">
+                        <div class="range-stat-section-title">📅 时间范围信息</div>
+                        <div class="range-stat-item">
+                            <span class="range-stat-label">起始日期：</span>
+                            <span class="range-stat-value range-stat-highlight">${stats.startDate}</span>
+                        </div>
+                        <div class="range-stat-item">
+                            <span class="range-stat-label">结束日期：</span>
+                            <span class="range-stat-value range-stat-highlight">${stats.endDate}</span>
+                        </div>
+                        <div class="range-stat-item">
+                            <span class="range-stat-label">分析天数：</span>
+                            <span class="range-stat-value">${stats.days}<span class="range-stat-unit">天</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="range-stat-divider"></div>
+                    
+                    <div class="series-selector">
+                        <div style="font-size:12px;color:#666;margin-bottom:5px;width:100%;">选择显示地质指标：</div>
+                        ${seriesSelectorHTML}
+                    </div>
+                    
+                    ${seriesStatsHTML}
+                    
+                    ${stats.pressureDrop ? `
+                    <div class="range-stat-divider"></div>
+                    
+                    <div class="range-stat-section">
+                        <div class="range-stat-section-title">📊 压力衰减地质分析</div>
+                        <div class="range-stat-item">
+                            <span class="range-stat-label">井底压力衰减：</span>
+                            <span class="range-stat-value range-stat-highlight">${stats.pressureDrop}<span class="range-stat-unit">MPa</span></span>
+                        </div>
+                        <div class="range-stat-item">
+                            <span class="range-stat-label">日均降压强度：</span>
+                            <span class="range-stat-value">${stats.dailyPressureDrop}<span class="range-stat-unit">MPa/天</span></span>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="range-stat-footer">
+                        📌 提示：拖动标题栏可移动窗口 | 点击弹窗外部或关闭按钮可关闭 | ESC键关闭
+                    </div>
+                </div>
+            `;
+            
+            // 添加到页面
+            document.body.appendChild(popup);
+            
+            // 显示遮罩层
+            document.getElementById('popupOverlay').style.display = 'block';
+            
+            // 保存当前弹窗引用
+            currentPopup = popup;
+            
+            // 添加弹窗拖动功能
+            addPopupDragFunctionality(popup);
+        }
+
+        // ✅ 核心优化3：优化拖动事件逻辑，减少计算量，提升流畅度
+        function addPopupDragFunctionality(popup) {
+            const header = popup.querySelector('.range-stat-header');
+            if (!header) return;
+            
+            header.addEventListener('mousedown', startDrag);
+            header.addEventListener('touchstart', startDragTouch);
+            
+            function startDrag(e) {
+                e.preventDefault();
+                isDraggingPopup = true;
+                popup.classList.add('dragging');
+                
+                const rect = popup.getBoundingClientRect();
+                popupDragStartX = e.clientX;
+                popupDragStartY = e.clientY;
+                popupDragOffsetX = rect.left;
+                popupDragOffsetY = rect.top;
+                
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
+            }
+            
+            function startDragTouch(e) {
+                if (e.touches.length !== 1) return;
+                e.preventDefault();
+                isDraggingPopup = true;
+                popup.classList.add('dragging');
+                
+                const rect = popup.getBoundingClientRect();
+                popupDragStartX = e.touches[0].clientX;
+                popupDragStartY = e.touches[0].clientY;
+                popupDragOffsetX = rect.left;
+                popupDragOffsetY = rect.top;
+                
+                document.addEventListener('touchmove', onDragTouch);
+                document.addEventListener('touchend', stopDragTouch);
+            }
+            
+            function onDrag(e) {
+                if (!isDraggingPopup) return;
+                e.preventDefault();
+                
+                const dx = e.clientX - popupDragStartX;
+                const dy = e.clientY - popupDragStartY;
+                
+                // 计算新位置，限制在可视范围内，简化边界计算逻辑
+                const newX = popupDragOffsetX + dx;
+                const newY = popupDragOffsetY + dy;
+                
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const popupWidth = popup.offsetWidth;
+                const popupHeight = popup.offsetHeight;
+                
+                // 简化边界判断，减少计算
+                const boundedX = Math.max(0, Math.min(newX, viewportWidth - popupWidth));
+                const boundedY = Math.max(0, Math.min(newY, viewportHeight - popupHeight));
+                
+                // 直接赋值，无过渡动画，最流畅的拖动体验
+                popup.style.left = `${boundedX}px`;
+                popup.style.top = `${boundedY}px`;
+            }
+            
+            function onDragTouch(e) {
+                if (!isDraggingPopup || e.touches.length !== 1) return;
+                e.preventDefault();
+                
+                const dx = e.touches[0].clientX - popupDragStartX;
+                const dy = e.touches[0].clientY - popupDragStartY;
+                
+                const newX = popupDragOffsetX + dx;
+                const newY = popupDragOffsetY + dy;
+                
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const popupWidth = popup.offsetWidth;
+                const popupHeight = popup.offsetHeight;
+                
+                const boundedX = Math.max(0, Math.min(newX, viewportWidth - popupWidth));
+                const boundedY = Math.max(0, Math.min(newY, viewportHeight - popupHeight));
+                
+                popup.style.left = `${boundedX}px`;
+                popup.style.top = `${boundedY}px`;
+            }
+            
+            function stopDrag() {
+                isDraggingPopup = false;
+                popup.classList.remove('dragging');
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+            
+            function stopDragTouch() {
+                isDraggingPopup = false;
+                popup.classList.remove('dragging');
+                document.removeEventListener('touchmove', onDragTouch);
+                document.removeEventListener('touchend', stopDragTouch);
+            }
+        }
+
+        function togglePopupSeries(seriesName) {
+            // 切换系列的可见性
+            seriesConfig[seriesName].visible = !seriesConfig[seriesName].visible;
+            
+            // 更新图表中的系列显示
+            const chart = chartInstances.totalTrendChart;
+            if (chart) {
+                const option = chart.getOption();
+                const seriesIndex = option.series.findIndex(s => s.name === seriesName);
+                if (seriesIndex !== -1) {
+                    option.series[seriesIndex].visible = seriesConfig[seriesName].visible;
+                    chart.setOption(option);
+                }
+            }
+            
+            // 强制同步更新顶部按钮状态
+            const btn = document.getElementById(`btn_${seriesName}`);
+            if (btn) {
+                btn.classList.remove('active', 'inactive');
+                btn.classList.add(seriesConfig[seriesName].visible ? 'active' : 'inactive');
+            }
+            
+            // 重新计算并刷新弹窗（精准匹配勾选的指标）
+            if (rangeStartIndex !== -1 && rangeEndIndex !== -1) {
+                const visibleSeries = Object.keys(seriesConfig).filter(name => seriesConfig[name].visible);
+                const stats = calculateRangeStatistics(rangeStartIndex, rangeEndIndex, visibleSeries);
+                if (stats && currentPopup) {
+                    closeRangeStatPopup();
+                    setTimeout(() => {
+                        showRangeStatisticsPopup(stats);
+                    }, 50);
+                }
+            }
+        }
+
+        function closeRangeStatPopup() {
+            const popup = document.getElementById('rangeStatPopup');
+            if (popup) {
+                popup.remove();
+            }
+            document.getElementById('popupOverlay').style.display = 'none';
+            currentPopup = null;
+            isDraggingPopup = false;
+        }
+
+        function clearRangeSelection() {
+            rangeStartIndex = -1;
+            rangeEndIndex = -1;
+            isSelectingRange = false;
+            
+            // 移除高亮区域+标记点，彻底清除
+            removeRangeHighlight();
+            
+            const chart = chartInstances.totalTrendChart;
+            if (chart) {
+                const option = chart.getOption();
+                option.series.forEach(series => {
+                    series.markArea = null;
+                });
+                chart.setOption(option);
+            }
+            
+            closeRangeStatPopup();
+            document.getElementById('rangeClearBtn').style.display = 'none';
+            document.getElementById('rangeInfo').textContent = '鼠标拖拽选择时间范围（支持多指标地质对比）';
+        }
+
+        function toggleSeries(seriesName) {
+            // 1. 强制切换系列状态，无任何冗余判断，确保状态翻转
+            seriesConfig[seriesName].visible = !seriesConfig[seriesName].visible;
+            const isVisible = seriesConfig[seriesName].visible;
+
+            // 2. 精准获取对应的开关按钮，100%匹配，不会找不到
+            const btn = document.getElementById(`btn_${seriesName}`);
+            if (btn) {
+                btn.classList.remove('active', 'inactive');
+                btn.classList.add(isVisible ? 'active' : 'inactive');
+            }
+
+            // 3. 更新图表数据，强制刷新图表，确保系列显隐立即生效
+            const chart = chartInstances.totalTrendChart;
+            if (chart && !chart.isDisposed()) {
+                const option = chart.getOption();
+                const targetSeries = option.series.find(item => item.name === seriesName);
+                if (targetSeries) {
+                    targetSeries.visible = isVisible;
+                    // 关键：第二个参数传 true 强制刷新图表，解决echarts不重绘问题
+                    chart.setOption(option, true);
+                }
+            }
+
+            // 4. 联动弹窗更新，保持数据一致
+            if (rangeStartIndex !== -1 && rangeEndIndex !== -1) {
+                const visibleSeries = Object.keys(seriesConfig).filter(name => seriesConfig[name].visible);
+                const stats = calculateRangeStatistics(rangeStartIndex, rangeEndIndex, visibleSeries);
+                if (stats && currentPopup) {
+                    closeRangeStatPopup();
+                    setTimeout(() => { showRangeStatisticsPopup(stats); }, 50);
+                }
+                // 重新设置高亮区域
+                setRangeHighlight(rangeStartIndex, rangeEndIndex);
+            }
+        }
+
+        function parseData() {
+            if (typeof echarts === 'undefined') {
+                showTips('图表库尚未加载完成，请稍后再试', 'error');
+                return;
+            }
+            
+            const text = document.getElementById('dataText').value.trim();
+            if (!text) {
+                showTips('请先导入或粘贴煤层气地质数据', 'error');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            showTips('正在解析地质数据并生成专业工程建议...', 'info');
+
+            setTimeout(() => {
+                try {
+                    // 修复：兼容所有换行符 \r\n \n \r
+                    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(line => line.trim());
+                    if (lines.length === 0) throw new Error('地质数据为空，请检查格式');
+                    
+                    const header = lines[0].split('\t').map(h => h.trim());
+                    const dataRows = lines.slice(1).map(line => {
+                        const cols = line.split('\t').map(c => c.trim());
+                        let row = {};
+                        header.forEach((h, i) => row[h] = cols[i] || '');
+                        return row;
+                    });
+
+                    globalData = dataRows;
+                    if (globalData.length === 0) throw new Error('地质数据为空，请检查格式');
+                    
+                    const bottomPressure = globalData.map(item => parseFloat(item['井底压力（MPa）']) || 0);
+                    const casingPressure = globalData.map(item => parseFloat(item['套压（MPa）']) || 0);
+                    const gasProd = globalData.map(item => parseFloat(item['日产气量(m³)']) || 0);
+                    const waterProd = globalData.map(item => parseFloat(item['日产水(m³）']) || 0);
+                    const pressureFirst = bottomPressure[0];
+                    const pressureLast = bottomPressure[bottomPressure.length-1];
+                    const pressureDrop = (pressureFirst - pressureLast).toFixed(1);
+                    const avgGas = (gasProd.reduce((a,b)=>a+b)/gasProd.length).toFixed(0);
+                    const avgWater = (waterProd.reduce((a,b)=>a+b)/waterProd.length).toFixed(1);
+                    const gasMax = Math.max(...gasProd);
+                    const dayCount = globalData.length;
+                    const dailyPressureDrop = (pressureDrop / dayCount).toFixed(4);
+                    const reachRate = ((gasMax/5000)*100).toFixed(0) + '%';
+                    
+                    document.getElementById('wellNumber').innerText = globalData[0]['井号'] || '未知';
+                    document.getElementById('wellType').innerText = '煤层气井';
+                    document.getElementById('productionStandard').innerText = '5000 m³/d';
+                    document.getElementById('reachRate').innerText = reachRate;
+
+                    document.getElementById('periodValue').innerText = dayCount;
+                    document.getElementById('avgGasValue').innerText = avgGas;
+                    document.getElementById('avgWaterValue').innerText = avgWater;
+                    document.getElementById('pressureDropValue').innerText = pressureDrop;
+                    document.getElementById('pressureDropRate').innerText = dailyPressureDrop;
+
+                    document.getElementById('wellInfo').style.display = 'flex';
+                    document.getElementById('dataSummary').style.display = 'grid';
+                    document.getElementById('chartsSection').style.display = 'block';
+
+                    initCharts();
+                    document.getElementById('suggestion').innerHTML = generateEngineeringSuggestion();
+
+                    showTips(`地质数据解析成功！共${dayCount}天数据，智能工程建议已生成！`, 'success');
+                } catch (err) {
+                    showTips(`地质数据解析失败: ${err.message}`, 'error');
+                    document.getElementById('suggestion').innerHTML = `<div class="suggestion-item"><span class="suggest-danger">数据解析出错：${err.message}</span></div>`;
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 800);
+        }
+        
+        function refreshCorrelationChart() {
+            if(globalData.length === 0 || !chartInstances.correlationChart) return;
+            // 获取选中的X/Y轴指标
+            const xKey = document.getElementById('xAxisSelect').value;
+            const yKey = document.getElementById('yAxisSelect').value;
+            // 获取对应数据
+            const xData = globalData.map(item => parseFloat(item[xKey]) || 0);
+            const yData = globalData.map(item => parseFloat(item[yKey]) || 0);
+            // 计算回归和相关系数
+            const {corr, k, b} = getLinearRegression(xData, yData);
+            document.getElementById('corrValue').innerText = corr;
+            // 计算拟合线数据
+            const xMin = Math.min(...xData);
+            const xMax = Math.max(...xData);
+            const fitY1 = Number(k)*xMin + Number(b);
+            const fitY2 = Number(k)*xMax + Number(b);
+            const fitData = [[xMin, fitY1], [xMax, fitY2]];
+            // 拼接指标名称
+            const xName = xKey.replace('（MPa）','(MPa)').replace('(m³)','(m³/d)').replace('(m³）','(m³/d)');
+            const yName = yKey.replace('（MPa）','(MPa)').replace('(m³)','(m³/d)').replace('(m³）','(m³/d)');
+            // 更新图表标题
+            const chartTitleDom = document.querySelector('#correlationChart').parentNode.querySelector('.chart-title');
+            chartTitleDom.innerHTML = `
+                ${xName}-${yName}相关性分析（相关系数：<span id="corrValue">${corr}</span>）
+                <select class="corr-select" id="xAxisSelect" onchange="refreshCorrelationChart()">
+                    <option value="井底压力（MPa）" ${xKey=='井底压力（MPa）'?'selected':''}>X轴：井底压力 (MPa)</option>
+                    <option value="套压（MPa）" ${xKey=='套压（MPa）'?'selected':''}>X轴：套压 (MPa)</option>
+                    <option value="日产气量(m³)" ${xKey=='日产气量(m³)'?'selected':''}>X轴：日产气量 (m³/d)</option>
+                    <option value="日产水(m³）" ${xKey=='日产水(m³）'?'selected':''}>X轴：日产水量 (m³/d)</option>
+                </select>
+                <select class="corr-select" id="yAxisSelect" onchange="refreshCorrelationChart()">
+                    <option value="井底压力（MPa）" ${yKey=='井底压力（MPa）'?'selected':''}>Y轴：井底压力 (MPa)</option>
+                    <option value="套压（MPa）" ${yKey=='套压（MPa）'?'selected':''}>Y轴：套压 (MPa)</option>
+                    <option value="日产气量(m³)" ${yKey=='日产气量(m³)'?'selected':''}>Y轴：日产气量 (m³/d)</option>
+                    <option value="日产水(m³）" ${yKey=='日产水(m³）'?'selected':''}>Y轴：日产水量 (m³/d)</option>
+                </select>
+                <button class="chart-download-btn" onclick="downloadSingleChart('correlationChart', '${xName}-${yName}相关性分析图')">📥 下载</button>
+            `;
+            // 更新图表数据
+            chartInstances.correlationChart.setOption({
+                tooltip: { trigger: 'item' },
+                xAxis: { type: 'value', name: xName, min:xMin-0.1, max:xMax+0.1 },
+                yAxis: { type: 'value', name: yName, min:0 },
+                series: [
+                    { name: '实测地质数据', type: 'scatter', data: xData.map((p, i) => [p, yData[i]]), color:'#3498db', symbolSize:8 },
+                    { name: `线性拟合(y=${k}x+${b})`, type: 'line', data: fitData, color:'#e74c3c', lineStyle:{type:'dashed', width:2}, symbol:false }
+                ],
+                legend:{data:['实测地质数据','线性拟合'],left:'center'}
+            });
+        }
+
+        function initCharts() {
+            if (typeof echarts === 'undefined') {
+                showTips('图表库加载失败，无法创建地质趋势图', 'error');
+                return;
+            }
+            
+            const dates = globalData.map(item => item['生产日期']);
+            const bottomPressure = globalData.map(item => parseFloat(item['井底压力（MPa）']) || 0);
+            const casingPressure = globalData.map(item => parseFloat(item['套压（MPa）']) || 0);
+            const gasProd = globalData.map(item => parseFloat(item['日产气量(m³)']) || 0);
+            const waterProd = globalData.map(item => parseFloat(item['日产水(m³）']) || 0);
+
+            try {
+                chartInstances.pressureTrendChart = echarts.init(document.getElementById('pressureTrendChart'));
+                chartInstances.pressureTrendChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: dates },
+                    yAxis: { type: 'value', name: 'MPa', min: 0 },
+                    series: [{ name: '井底压力', type: 'line', data: bottomPressure, smooth: true }]
+                });
+
+                chartInstances.casingPressureTrendChart = echarts.init(document.getElementById('casingPressureTrendChart'));
+                chartInstances.casingPressureTrendChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: dates },
+                    yAxis: { type: 'value', name: 'MPa', min: 0 },
+                    series: [{ name: '套压', type: 'line', data: casingPressure, smooth: true, color: '#e74c3c' }]
+                });
+
+                chartInstances.gasTrendChart = echarts.init(document.getElementById('gasTrendChart'));
+                chartInstances.gasTrendChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: dates },
+                    yAxis: { type: 'value', name: 'm³/d', min: 0 },
+                    series: [{ name: '日产气量', type: 'line', data: gasProd, smooth: true, color: '#27ae60' }]
+                });
+
+                chartInstances.waterTrendChart = echarts.init(document.getElementById('waterTrendChart'));
+                chartInstances.waterTrendChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: dates },
+                    yAxis: { type: 'value', name: 'm³/d', min: 0 },
+                    series: [{ name: '日产水量', type: 'line', data: waterProd, smooth: true, color: '#f39c12' }]
+                });
+
+                chartInstances.totalTrendChart = echarts.init(document.getElementById('totalTrendChart'));
+                
+                const seriesData = [];
+                for (const seriesName in seriesConfig) {
+                    const config = seriesConfig[seriesName];
+                    let data = [];
+                    switch(seriesName) {
+                        case '井底压力': data = bottomPressure; break;
+                        case '套压': data = casingPressure; break;
+                        case '日产气量': data = gasProd; break;
+                        case '日产水量': data = waterProd; break;
+                    }
+                    
+                    seriesData.push({
+                        name: seriesName,
+                        type: 'line',
+                        yAxisIndex: config.yAxisIndex,
+                        data: data,
+                        smooth: true,
+                        visible: config.visible,
+                        lineWidth: 2,
+                        color: config.color,
+                        symbol: 'circle',
+                        symbolSize: 4
+                    });
+                }
+                
+                const totalOption = {
+                    tooltip: { 
+                        trigger: 'axis', 
+                        axisPointer: { 
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#6a7985'
+                            }
+                        } 
+                    },
+                    legend: { show: true, top: 5, left: 'center', textStyle: {fontSize:12} },
+                    xAxis: { 
+                        type: 'category', 
+                        data: dates, 
+                        axisLabel: { rotate:30, fontSize:11 },
+                        boundaryGap: false
+                    },
+                    yAxis: [
+                        { 
+                            type: 'value', 
+                            name: '压力 (MPa)', 
+                            position: 'left', 
+                            axisLine: { color: '#3498db', lineStyle:{color:'#3498db'} },
+                            nameTextStyle: {color: '#3498db'},
+                            min: 0
+                        },
+                        { 
+                            type: 'value', 
+                            name: '产量 (m³/d)', 
+                            position: 'right', 
+                            axisLine: { color: '#27ae60', lineStyle:{color:'#27ae60'} },
+                            nameTextStyle: {color: '#27ae60'},
+                            splitLine: {show: false},
+                            min: 0
+                    }
+                    ],
+                    series: seriesData,
+                    grid: {left: '3%', right: '4%', bottom: '10%', top: '15%', containLabel: true},
+                    dataZoom: [{type: 'inside', xAxisIndex: [0], start:0, end:100}]
+                };
+
+                chartInstances.totalTrendChart.setOption(totalOption);
+
+                const totalChartDom = document.getElementById('totalTrendChart');
+                totalChartDom.onmousedown = function(event) {
+                    if (!globalData.length) return;
+                    isSelectingRange = true;
+                    const pointInPixel = [event.offsetX, event.offsetY];
+                    const pointInGrid = chartInstances.totalTrendChart.convertFromPixel({ seriesIndex: 0 }, pointInPixel);
+                    if (pointInGrid && pointInGrid[0] !== null) {
+                        rangeStartIndex = Math.round(pointInGrid[0]);
+                        rangeStartIndex = Math.max(0, Math.min(rangeStartIndex, dates.length-1));
+                        rangeEndIndex = rangeStartIndex;
+                        setRangeHighlight(rangeStartIndex, rangeEndIndex);
+                    }
+                    event.stopPropagation();
+                };
+                totalChartDom.onmousemove = function(event) {
+                    if (!isSelectingRange || !globalData.length) return;
+                    const pointInPixel = [event.offsetX, event.offsetY];
+                    const pointInGrid = chartInstances.totalTrendChart.convertFromPixel({ seriesIndex: 0 }, pointInPixel);
+                    if (pointInGrid && pointInGrid[0] !== null) {
+                        const newIndex = Math.round(pointInGrid[0]);
+                        if (newIndex >=0 && newIndex < dates.length && newIndex !== rangeEndIndex) {
+                            rangeEndIndex = newIndex;
+                            setRangeHighlight(rangeStartIndex, rangeEndIndex);
+                        }
+                    }
+                    event.stopPropagation();
+                };
+                totalChartDom.onmouseup = function(event) {
+                    if (!isSelectingRange) return;
+                    isSelectingRange = false;
+                    if (rangeStartIndex !== -1 && rangeEndIndex !== -1 && rangeStartIndex !== rangeEndIndex) {
+                        const visibleSeries = Object.keys(seriesConfig).filter(name => seriesConfig[name].visible);
+                        const stats = calculateRangeStatistics(rangeStartIndex, rangeEndIndex, visibleSeries);
+                        if (stats) {
+                            showRangeStatisticsPopup(stats);
+                            showTips(`已选择地质时间段：${stats.startDate} 至 ${stats.endDate} (${stats.days}天)`, 'success');
+                        }
+                    }
+                    event.stopPropagation();
+                };
+                totalChartDom.ondblclick = function(event) {
+                    clearRangeSelection();
+                    event.stopPropagation();
+                };
+
+                chartInstances.correlationChart = echarts.init(document.getElementById('correlationChart'));
+                refreshCorrelationChart();
+
+                if(resizeHandler) window.removeEventListener('resize', resizeHandler);
+                resizeHandler = function(){
+                    Object.values(chartInstances).forEach(chart => {
+                        if (chart && !chart.isDisposed()) chart.resize();
+                    });
+                    if(rangeStartIndex != -1 && rangeEndIndex != -1){
+                        setRangeHighlight(rangeStartIndex, rangeEndIndex);
+                    }
+                }
+                window.addEventListener('resize', resizeHandler);
+                
+            } catch (err) {
+                showTips(`地质图表初始化失败: ${err.message}`, 'error');
+                console.error('图表初始化错误:', err);
+            }
+        }
+
+// ==============================================
+// ✅ 核心修复：EXE 环境专用下载方法（支持选择保存路径）
+// ==============================================
+function saveFileExe(content, fileName, fileType) {
+    try {
+        // EXE 环境弹出路径选择
+        const path = window.dialog.showSaveDialogSync({
+            title: '选择保存位置',
+            defaultPath: fileName,
+            filters: [
+                { name: fileType, extensions: fileName.split('.').pop() }
+            ]
+        });
+        
+        if (!path) {
+            showTips('已取消保存', 'info');
+            return false;
+        }
+
+        // 写入文件
+        require('fs').writeFileSync(path, content);
+        showTips(`文件已保存到：${path}`, 'success');
+        return true;
+    } catch (e) {
+        // 普通浏览器环境降级
+        const blob = new Blob([content], { type: fileType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        showTips('文件已下载', 'success');
+        return true;
+    }
+}
+
+// 下载单张图表
+function downloadSingleChart(chartId, chartName) {
+    const chartDom = document.getElementById(chartId);
+    if (!chartDom) return;
+    
+    html2canvas(chartDom).then(canvas => {
+        canvas.toBlob(blob => {
+            const wellNum = document.getElementById('wellNumber').innerText || '未知井号';
+            const fileName = `${wellNum}_${chartName}.jpg`;
+            
+            blob.arrayBuffer().then(buf => {
+                saveFileExe(Buffer.from(buf), fileName, 'image/jpeg');
+            });
+        });
+    });
+}
+
+// 导出所有图表
+function exportAllCharts() {
+    if (!globalData.length) {
+        showTips('没有地质数据，无法导出图表', 'error');
+        return;
+    }
+    
+    const zip = new JSZip();
+    const chartIds = Object.keys(chartInstances);
+    let count = 0;
+    const wellNum = document.getElementById('wellNumber').innerText || '未知井号';
+
+    showTips('正在打包地质分析图表...', 'info');
+    chartIds.forEach(id => {
+        const chartDom = document.getElementById(id);
+        if (!chartDom) { count++; return; }
+        
+        html2canvas(chartDom).then(canvas => {
+            canvas.toBlob(blob => {
+                const chartName = chartInstances[id]?.getOption()?.title?.[0]?.text || id;
+                zip.file(`${wellNum}_${chartName}.jpg`, blob);
+                count++;
+                if (count === chartIds.length) {
+                    zip.generateAsync({ type: 'nodebuffer' }).then(content => {
+                        saveFileExe(content, `${wellNum}_煤层气图表.zip`, 'application/zip');
+                    });
+                }
+            });
+        });
+    });
+}
+
+// 导出 Excel（完全修复乱码）
+function exportData() {
+    if (globalData.length === 0) {
+        showTips('暂无地质数据可导出', 'error');
+        return;
+    }
+    const wellNum = document.getElementById('wellNumber').innerText || '未知井号';
+    const worksheet = XLSX.utils.json_to_sheet(globalData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "煤层气数据");
+    
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+    saveFileExe(excelBuffer, `${wellNum}_煤层气分析数据.xlsx`, 'application/vnd.ms-excel');
+}
+
+// 导出完整报告
+function exportReportAsImages() {
+    if (globalData.length === 0) {
+        showTips('暂无地质数据，无法导出报告', 'error');
+        return;
+    }
+    const wellNum = document.getElementById('wellNumber').innerText || '未知井号';
+    const reportDom = document.body.querySelector('.container');
+    
+    showTips('正在生成完整地质分析报告...', 'info');
+    html2canvas(reportDom, {
+        scale: 2, useCORS: true, allowTaint: true, logging: false
+    }).then(canvas => {
+        canvas.toBlob(blob => {
+            blob.arrayBuffer().then(buf => {
+                saveFileExe(Buffer.from(buf), `${wellNum}_地质分析报告.jpg`, 'image/jpeg');
+            });
+        });
+    });
+}
+    </script>
+</body>
 </html>
